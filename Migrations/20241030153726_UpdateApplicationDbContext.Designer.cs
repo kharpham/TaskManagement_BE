@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TaskManagementApp.Data;
 
@@ -11,9 +12,11 @@ using TaskManagementApp.Data;
 namespace TaskManagementApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241030153726_UpdateApplicationDbContext")]
+    partial class UpdateApplicationDbContext
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -182,7 +185,6 @@ namespace TaskManagementApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -310,13 +312,9 @@ namespace TaskManagementApp.Migrations
 
             modelBuilder.Entity("TaskManagementApp.Models.Task", b =>
                 {
-                    b.HasOne("TaskManagementApp.Models.User", "User")
+                    b.HasOne("TaskManagementApp.Models.User", null)
                         .WithMany("Tasks")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("TaskManagementApp.Models.User", b =>

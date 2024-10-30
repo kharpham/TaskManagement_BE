@@ -1,14 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;    
+using Microsoft.EntityFrameworkCore;
 using TaskManagementApp.Models;
 
 namespace TaskManagementApp.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<User>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base (options)
-        {   
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        {
         }
+
         public DbSet<TaskManagementApp.Models.Task> Tasks { get; set; }
-        public DbSet<User> Users { get; set; }
     }
 }
