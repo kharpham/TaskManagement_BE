@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using System.Collections.Generic;   
-namespace TaskManagementApp.Models
+﻿namespace TaskManagementApp.Models
 {
-    public class User : IdentityUser
+    public class User
     {
-        public required ICollection<Task> Tasks { get; set; } 
+        public int Id { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string PasswordHash { get; set; }
+        public ICollection<Task> Tasks { get; set; } = new List<Task>();
     }
 }
