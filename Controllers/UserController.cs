@@ -66,6 +66,14 @@ namespace TaskManagementApp.Controllers
                 return BadRequest("Invalid email or password");
             };
             var token = GenerateJwtToken(user);
+            // Set the token in the cookie
+            Response.Cookies.Append("jwt", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
             return Ok(new { token });
         }
         private string GenerateJwtToken(User user)
