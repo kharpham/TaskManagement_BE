@@ -9,8 +9,8 @@
         public DateTime DueDate { get; set; }
         public required string AssignedTo { get; set; }
 
-        // Foreign Key
-        public required string UserId { get; set; }
+        //// Foreign Key
+        //public required string UserId { get; set; }
 
         // Navigation Property
         public required User User { get; set; }

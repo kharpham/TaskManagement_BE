@@ -59,6 +59,7 @@ namespace TaskManagementApp.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginUser model )
         {
+            System.Diagnostics.Debug.WriteLine("Logging user in...");
             var user = _context.Users.FirstOrDefault(x => x.Email == model.Email);
             if (user == null || !VerifyPassword(model.Password, user.PasswordHash))
             {
