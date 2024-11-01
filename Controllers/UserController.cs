@@ -50,6 +50,15 @@ namespace TaskManagementApp.Controllers
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+            var token = GenerateJwtToken(user);
+            // Set the token in the cookie
+            Response.Cookies.Append("jwt", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
 
             return Ok();
         }
