@@ -9,7 +9,7 @@ namespace TaskManagementApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class TaskController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -57,7 +57,7 @@ namespace TaskManagementApp.Controllers
         [HttpGet]
         public async Task<IActionResult> GetTasks()
         {
-            var tasks = await _context.Tasks.ToListAsync();
+            var tasks = await _context.Tasks.OrderByDescending(t => t.Id).ToListAsync();
             return Ok(tasks);
         }
 

@@ -76,6 +76,14 @@ namespace TaskManagementApp.Controllers
             });
             return Ok(new { token });
         }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            // Clear the token from the cookie
+            Response.Cookies.Delete("jwt");
+            return Ok("Logged out successfully");
+        }
         private string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
