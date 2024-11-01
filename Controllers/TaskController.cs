@@ -55,9 +55,16 @@ namespace TaskManagementApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetTasks()
+        public async Task<IActionResult> GetTasks([FromQuery] bool? isComplete)
         {
-            var tasks = await _context.Tasks.OrderByDescending(t => t.Id).ToListAsync();
+            var query = _context.Tasks.AsQueryable();
+
+            if (isComplete.HasValue)
+            {
+                query = query.Where(t => t.IsComplete == isComplete.Value);
+            }
+
+            var tasks = await query.OrderByDescending(t => t.Id).ToListAsync();
             return Ok(tasks);
         }
 
