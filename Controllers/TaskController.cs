@@ -11,12 +11,12 @@ namespace TaskManagementApp.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class TaskController : ControllerBase 
+    public class TaskController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         public TaskController(ApplicationDbContext context)
         {
-            _context = context; 
+            _context = context;
         }
         [HttpPost]
         public async Task<IActionResult> CreateTask([FromBody] CreateTask task)
@@ -50,6 +50,110 @@ namespace TaskManagementApp.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(newTask);
-        } 
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetTasks()
+        {
+            var tasks = await _context.Tasks.ToListAsync();
+            return Ok(tasks);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetTask(int id)
+        {
+            var userId = HttpContext.Items["UserId"] as string;
+            if (userId == null)
+            {
+                System.Diagnostics.Debug.WriteLine("User ID is not found...");
+                return Unauthorized("You are not authorized");
+            }
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+            if (task == null)
+            {
+                return NotFound("Task not found");
+            }
+            return Ok(task);
+
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTask(int id)
+        {
+            var userId = HttpContext.Items["UserId"] as string;
+            if (userId == null)
+            {
+                System.Diagnostics.Debug.WriteLine("User ID is not found...");
+                return Unauthorized("You are not authorized");
+            }
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+            if (task == null)
+            {
+                return NotFound("Task not found");
+            }
+            _context.Tasks.Remove(task);
+            await _context.SaveChangesAsync();
+            return NoContent();
+
+
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateTask(int id, [FromBody] CreateTask updatedTask)
+        {
+            System.Diagnostics.Debug.WriteLine("Updating task...");
+            if (updatedTask == null)
+            {
+                return BadRequest("Invalid task data");
+            }
+            var userId = HttpContext.Items["UserId"] as string;
+            if (userId == null)
+            {
+                System.Diagnostics.Debug.WriteLine("User ID is not found...");
+                return Unauthorized("You are not authorized");
+            }
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+            if (task == null)
+            {
+                return NotFound("Task not found");
+            }
+            var assignedUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == updatedTask.AssignedTo);
+            if (assignedUser == null)
+            {
+                return BadRequest("Assigned user does not exist");
+            }
+            task.Title = updatedTask.Title;
+            task.Description = updatedTask.Description;
+            task.DueDate = updatedTask.DueDate;
+            task.AssignedTo = updatedTask.AssignedTo;
+            task.User = assignedUser;
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
+
+            return Ok(task);
+
+        }
+
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> UpdateTaskStatus(int id, [FromBody] UpdateTaskStatus taskStatus)
+        {
+            var userId = HttpContext.Items["UserId"] as string;
+            if (userId == null)
+            {
+                System.Diagnostics.Debug.WriteLine("User ID is not found...");
+                return Unauthorized("You are not authorized");
+            }
+            System.Diagnostics.Debug.WriteLine("Updating task status...");
+            if (taskStatus == null)
+            {
+                return BadRequest("Invalid status data");
+            }
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+            if (task == null)
+            {
+                return NotFound("Task not found");
+            }
+            task.IsComplete = taskStatus.IsComplete;
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
+            return Ok(task);
+        }
     }
 }
