@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using TaskManagementApp.Data;
 using TaskManagementApp.Dtos;
 using TaskManagementApp.Models;
+using TaskManagementApp.Services;
 
 namespace TaskManagementApp.Controllers
 {
@@ -13,9 +14,12 @@ namespace TaskManagementApp.Controllers
     public class TaskController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        public TaskController(ApplicationDbContext context)
+        private readonly IEmailService _emailService; // Inject email service
+
+        public TaskController(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         [HttpPost]
@@ -51,6 +55,9 @@ namespace TaskManagementApp.Controllers
 
             _context.Tasks.Add(newTask);
             await _context.SaveChangesAsync();
+
+            // Send email notification to the assigned user
+            await _emailService.SendEmailAsync(assignedUser.Email, "Task Assignment", $"You have been assigned to the task '{newTask.Title}'.");
 
             return Ok(newTask);
         }
@@ -136,9 +143,15 @@ namespace TaskManagementApp.Controllers
             task.Title = updatedTask.Title;
             task.Description = updatedTask.Description;
             task.DueDate = updatedTask.DueDate;
-            task.AssignedTo = updatedTask.AssignedTo;
-            task.User = assignedUser;
 
+            task.User = assignedUser;
+            // Send email notification to the assigned user if the assignment has changed
+            if (task.AssignedTo != updatedTask.AssignedTo)
+            {
+                task.AssignedTo = updatedTask.AssignedTo;
+                task.ReminderSent = false;
+                await _emailService.SendEmailAsync(assignedUser.Email, "Task Assignment", $"You have been assigned to the task '{task.Title}'.");
+            }
             _context.Tasks.Update(task);
             await _context.SaveChangesAsync();
 
