@@ -10,10 +10,10 @@
         public required string AssignedTo { get; set; }
 
         // Foreign Key
-
-        //public required string UserId { get; set; }
+        public required int UserId { get; set; }
 
         // Navigation Property
-        public required User User { get; set; }
+        public required User User { get; set; } // Make User nullable
+        public bool ReminderSent { get; set; } = false;
     }
 }

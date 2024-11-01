@@ -44,20 +44,19 @@ namespace TaskManagementApp.Migrations
                     b.Property<bool>("IsComplete")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("ReminderSent")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId1")
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId1");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Tasks");
                 });
@@ -91,7 +90,7 @@ namespace TaskManagementApp.Migrations
                 {
                     b.HasOne("TaskManagementApp.Models.User", "User")
                         .WithMany("Tasks")
-                        .HasForeignKey("UserId1")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

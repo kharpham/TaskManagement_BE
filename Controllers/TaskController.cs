@@ -38,7 +38,7 @@ namespace TaskManagementApp.Controllers
                 return BadRequest("Assigned user does not exist");
             }
 
-            var newTask = new TaskManagementApp.Models.Task
+            var newTask = new Models.Task
             {
                 Title = task.Title,
                 Description = task.Description,
@@ -46,6 +46,7 @@ namespace TaskManagementApp.Controllers
                 AssignedTo = task.AssignedTo,
                 IsComplete = false,
                 User = assignedUser,
+                UserId = assignedUser.Id,
             };
 
             _context.Tasks.Add(newTask);
