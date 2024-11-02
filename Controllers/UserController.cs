@@ -69,7 +69,7 @@ namespace TaskManagementApp.Controllers
         public async Task<IActionResult> Login([FromBody] LoginUser model )
         {
             System.Diagnostics.Debug.WriteLine("Logging user in...");
-            var user = _context.Users.FirstOrDefault(x => x.Email == model.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == model.Email);
             if (user == null || !VerifyPassword(model.Password, user.PasswordHash))
             {
                 return BadRequest("Invalid email or password");
@@ -121,6 +121,40 @@ namespace TaskManagementApp.Controllers
             {
                 return Unauthorized();
             }
+        }
+
+        [HttpGet("userinfo")]
+        public async Task<IActionResult> GetUserInfo()
+        {
+            var token = Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = false,
+                ValidateAudience = false
+            }, out SecurityToken validatedToken);
+
+            var userId = principal.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new { user.Username });
         }
         private string GenerateJwtToken(User user)
         {
