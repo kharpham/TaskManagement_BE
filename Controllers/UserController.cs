@@ -93,6 +93,35 @@ namespace TaskManagementApp.Controllers
             Response.Cookies.Delete("jwt");
             return Ok("Logged out successfully");
         }
+
+        [HttpGet("verify")]
+        public IActionResult Verify()
+        {
+            var token = Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                }, out SecurityToken validatedToken);
+
+                return Ok();
+            }
+            catch
+            {
+                return Unauthorized();
+            }
+        }
         private string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
