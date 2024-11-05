@@ -10,11 +10,11 @@ namespace TaskManagementApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class TaskController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly IEmailService _emailService; // Inject email service
+        private readonly IEmailService _emailService;
 
         public TaskController(ApplicationDbContext context, IEmailService emailService)
         {
@@ -27,19 +27,19 @@ namespace TaskManagementApp.Controllers
         {
             if (task == null)
             {
-                return BadRequest("Invalid task data");
+                return BadRequest(new { message = "Invalid task data" });
             }
 
             var userId = HttpContext.Items["UserId"] as string;
             if (userId == null)
             {
-                return Unauthorized("You are not authorized");
+                return Unauthorized(new { message = "You are not authorized" });
             }
 
             var assignedUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == task.AssignedTo);
             if (assignedUser == null)
             {
-                return BadRequest("Assigned user does not exist");
+                return BadRequest(new { message = "Assigned user does not exist" });
             }
 
             var newTask = new Models.Task
@@ -82,13 +82,13 @@ namespace TaskManagementApp.Controllers
             var userId = HttpContext.Items["UserId"] as string;
             if (userId == null)
             {
-                return Unauthorized("You are not authorized");
+                return Unauthorized(new { message = "You are not authorized" });
             }
 
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
             {
-                return NotFound("Task not found");
+                return NotFound(new { message = "Task not found" });
             }
 
             return Ok(task);
@@ -100,13 +100,13 @@ namespace TaskManagementApp.Controllers
             var userId = HttpContext.Items["UserId"] as string;
             if (userId == null)
             {
-                return Unauthorized("You are not authorized");
+                return Unauthorized(new { message = "You are not authorized" });
             }
 
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
             {
-                return NotFound("Task not found");
+                return NotFound(new { message = "Task not found" });
             }
 
             _context.Tasks.Remove(task);
@@ -119,25 +119,25 @@ namespace TaskManagementApp.Controllers
         {
             if (updatedTask == null)
             {
-                return BadRequest("Invalid task data");
+                return BadRequest(new { message = "Invalid task data" });
             }
 
             var userId = HttpContext.Items["UserId"] as string;
             if (userId == null)
             {
-                return Unauthorized("You are not authorized");
+                return Unauthorized(new { message = "You are not authorized" });
             }
 
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
             {
-                return NotFound("Task not found");
+                return NotFound(new { message = "Task not found" });
             }
 
             var assignedUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == updatedTask.AssignedTo);
             if (assignedUser == null)
             {
-                return BadRequest("Assigned user does not exist");
+                return BadRequest(new { message = "Assigned user does not exist" });
             }
 
             task.Title = updatedTask.Title;
@@ -163,19 +163,19 @@ namespace TaskManagementApp.Controllers
         {
             if (taskStatus == null)
             {
-                return BadRequest("Invalid status data");
+                return BadRequest(new { message = "Invalid status data" });
             }
 
             var userId = HttpContext.Items["UserId"] as string;
             if (userId == null)
             {
-                return Unauthorized("You are not authorized");
+                return Unauthorized(new { message = "You are not authorized" });
             }
 
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
             {
-                return NotFound("Task not found");
+                return NotFound(new { message = "Task not found" });
             }
 
             task.IsComplete = taskStatus.IsComplete;

@@ -28,17 +28,17 @@ namespace TaskManagementApp.Controllers
         {
             if (await _context.Users.AnyAsync(u => u.Email == model.Email))
             {
-                return BadRequest("Email already exists");
+                return BadRequest(new { message = "Email already exists" });
             }
             if (await _context.Users.AnyAsync(u => u.Username == model.Username))
             {
-                return BadRequest("Username already exists");
+                return BadRequest(new { message = "Username already exists" });
             }
 
             var passwordValidationResult = ValidatePassword(model.Password);
             if (!passwordValidationResult.IsValid)
             {
-                return BadRequest(passwordValidationResult.ErrorMessage);
+                return BadRequest(new { message = passwordValidationResult.ErrorMessage });
             }
 
             var user = new User
@@ -60,25 +60,23 @@ namespace TaskManagementApp.Controllers
                 Expires = DateTime.UtcNow.AddDays(7)
             });
 
-            return Ok();
+            return Ok(new { message = "User registered successfully" });
         }
 
-       
-
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginUser model )
+        public async Task<IActionResult> Login([FromBody] LoginUser model)
         {
             System.Diagnostics.Debug.WriteLine("Logging user in...");
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == model.Email);
             if (user == null || !VerifyPassword(model.Password, user.PasswordHash))
             {
-                return BadRequest("Invalid email or password");
-            };
+                return BadRequest(new { message = "Invalid email or password" });
+            }
             var token = GenerateJwtToken(user);
             // Set the token in the cookie
             Response.Cookies.Append("jwt", token, new CookieOptions
             {
-                HttpOnly = true,
+                HttpOnly = false, // Set HTTP-Only to false 
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTime.UtcNow.AddDays(7)
@@ -91,7 +89,7 @@ namespace TaskManagementApp.Controllers
         {
             // Clear the token from the cookie
             Response.Cookies.Delete("jwt");
-            return Ok("Logged out successfully");
+            return Ok(new { message = "Logged out successfully" });
         }
 
         [HttpGet("verify")]
@@ -100,7 +98,7 @@ namespace TaskManagementApp.Controllers
             var token = Request.Cookies["jwt"];
             if (string.IsNullOrEmpty(token))
             {
-                return Unauthorized();
+                return Unauthorized(new { message = "Unauthorized" });
             }
 
             try
@@ -115,11 +113,11 @@ namespace TaskManagementApp.Controllers
                     ValidateAudience = false
                 }, out SecurityToken validatedToken);
 
-                return Ok();
+                return Ok(new { message = "Token is valid" });
             }
             catch
             {
-                return Unauthorized();
+                return Unauthorized(new { message = "Unauthorized" });
             }
         }
 
@@ -129,7 +127,7 @@ namespace TaskManagementApp.Controllers
             var token = Request.Cookies["jwt"];
             if (string.IsNullOrEmpty(token))
             {
-                return Unauthorized();
+                return Unauthorized(new { message = "Unauthorized" });
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -142,20 +140,21 @@ namespace TaskManagementApp.Controllers
                 ValidateAudience = false
             }, out SecurityToken validatedToken);
 
-            var userId = principal.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            var userId = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
-                return Unauthorized();
+                return Unauthorized(new { message = "Unauthorized" });
             }
 
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new { message = "User not found" });
             }
 
             return Ok(new { user.Username });
         }
+
         private string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -173,6 +172,7 @@ namespace TaskManagementApp.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
         private (bool IsValid, string ErrorMessage) ValidatePassword(string password)
         {
             if (password.Length < 6)
@@ -211,6 +211,7 @@ namespace TaskManagementApp.Controllers
                 return Convert.ToBase64String(bytes);
             }
         }
+
         private bool VerifyPassword(string password, string hash)
         {
             return HashPassword(password) == hash;
