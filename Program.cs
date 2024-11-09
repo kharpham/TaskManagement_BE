@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using TaskManagementApp.Data;
 using TaskManagementApp.Middlewares;
@@ -19,7 +20,10 @@ builder.Services.AddHostedService<TaskReminder>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
 builder.Services.AddEndpointsApiExplorer();
