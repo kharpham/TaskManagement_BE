@@ -124,35 +124,34 @@ namespace TaskManagementApp.Controllers
         [HttpGet("userinfo")]
         public async Task<IActionResult> GetUserInfo()
         {
-            var token = Request.Cookies["jwt"];
-            if (string.IsNullOrEmpty(token))
+            var userId = HttpContext.Items["UserId"] as string;
+            if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new { message = "Unauthorized" });
+                return Unauthorized(new { message = "Unauthorized with userId empty" });
             }
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
-            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+            if (!int.TryParse(userId, out int userIdInt))
             {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuer = false,
-                ValidateAudience = false
-            }, out SecurityToken validatedToken);
-
-            var userId = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return Unauthorized(new { message = "Unauthorized" });
+                return BadRequest(new { message = "Invalid user ID" });
             }
 
-            var user = await _context.Users.FindAsync(userId);
+            var user = await _context.Users.FindAsync(userIdInt);
             if (user == null)
             {
                 return NotFound(new { message = "User not found" });
             }
 
             return Ok(new { user.Username });
+        }
+
+        [HttpGet("usernames")]
+        public async Task<IActionResult> GetAllUsernames()
+        {
+            var usernames = await _context.Users
+                .Select(u => u.Username)
+                .ToListAsync();
+
+            return Ok(usernames);
         }
 
         private string GenerateJwtToken(User user)
@@ -216,5 +215,7 @@ namespace TaskManagementApp.Controllers
         {
             return HashPassword(password) == hash;
         }
+
+
     }
 }
